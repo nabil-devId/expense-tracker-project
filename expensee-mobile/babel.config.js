@@ -1,0 +1,20 @@
+module.exports = function (api) {
+  api.cache(true);
+  return {
+    presets: ['@react-native/babel-preset', 'nativewind/babel'],
+    plugins: [
+      'react-native-reanimated/plugin',
+      '@babel/plugin-transform-export-namespace-from',
+      [
+        'module-resolver',
+        {
+          root: ['./src'],
+          extensions: ['.ios.js', '.android.js', '.js', '.ts', '.tsx', '.json'],
+          alias: {
+            '@': './src',
+          },
+        },
+      ],
+    ],
+  };
+};

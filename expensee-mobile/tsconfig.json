@@ -1,0 +1,10 @@
+{
+  "extends": "@react-native/typescript-config/tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "baseUrl": ".", // Root directory of the project
+    "paths": {
+      "@/*": ["src/*"] // Alias `@` points to the `src` directory
+    }
+  }
+}
