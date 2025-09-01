@@ -14,7 +14,6 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Now import our models
-import app.models
 from app.core.db import Base
 from app.core.config import settings
 

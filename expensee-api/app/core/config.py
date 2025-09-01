@@ -2,24 +2,29 @@ import os
 import secrets
 from typing import Any, Dict, List, Optional, Union
 
-from pydantic import AnyHttpUrl, PostgresDsn, field_validator, model_validator
+from pydantic import AnyHttpUrl, field_validator
 from pydantic_settings import BaseSettings
 
-
 class Settings(BaseSettings):
-    API_V1_PREFIX: str = os.getenv("API_V1_PREFIX")
-    PROJECT_NAME: str = os.getenv("PROJECT_NAME")
-    SECRET_KEY: str = os.getenv("SECRET_KEY")
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES")
+    # App settings
+    API_V1_PREFIX: str
+    PROJECT_NAME: str
+    GEMINI_API_KEY: str
+    SECRET_KEY: str = secrets.token_urlsafe(32) # A default secret is good practice
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     ALGORITHM: str = "HS256"
+    
+    # CORS
     BACKEND_CORS_ORIGINS: List[AnyHttpUrl] = ["https://*.elasticbeanstalk.com", "http://localhost:3000"]
+    
+    # Server Host (optional)
     SERVER_HOST: Optional[str] = None
 
     # Tesseract configuration
     TESSERACT_CMD: str = "/usr/bin/tesseract"
     TEMP_DIR: str = "/app/temp"
 
-    @field_validator("BACKEND_CORS_ORIGINS")
+    @field_validator("BACKEND_CORS_ORIGINS", mode='before')
     def assemble_cors_origins(cls, v: Union[str, List[str]]) -> Union[List[str], str]:
         if isinstance(v, str) and not v.startswith("["):
             return [i.strip() for i in v.split(",")]
@@ -28,34 +33,29 @@ class Settings(BaseSettings):
         raise ValueError(v)
 
     # Database
-    DATABASE_URL: str = os.getenv("DATABASE_URL")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
-
-    @model_validator(mode='before')
-    def validate_database_url(cls, data: dict) -> dict:
-        # Static database URL string
-        db_url = os.getenv("DATABASE_URL")
-        data['DATABASE_URL'] = db_url
-        
-        return data
+    DATABASE_URL: str
+    POSTGRES_USER: str
+    POSTGRES_PASSWORD: str
+    POSTGRES_DB: str
+    POSTGRES_HOST: str
+    POSTGRES_PORT: str
 
     # AWS Configuration
-    AWS_ACCESS_KEY_ID: str = os.getenv("AWS_ACCESS_KEY_ID")
-    AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
-    AWS_REGION: str = os.getenv("AWS_REGION")
-    RECEIPT_IMAGES_BUCKET: str = os.getenv("RECEIPT_IMAGES_BUCKET")
+    AWS_ACCESS_KEY_ID: str
+    AWS_SECRET_ACCESS_KEY: str
+    AWS_REGION: str
+    RECEIPT_IMAGES_BUCKET: str
     
     # AWS SES Configuration
-    SES_SENDER_EMAIL: str = os.getenv("SES_SENDER_EMAIL")
+    SES_SENDER_EMAIL: str
     SES_SENDER_NAME: str = "Expense Tracker"
 
     class Config:
-        case_sensitive = True
+        # This tells pydantic-settings to load variables from a .env file
         env_file = ".env"
+        # This makes matching case-sensitive (e.g., 'DB_HOST' != 'db_host')
+        case_sensitive = True
 
 
+# Create a single instance of the settings to be used throughout your app
 settings = Settings()
