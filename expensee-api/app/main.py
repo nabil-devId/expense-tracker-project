@@ -1,4 +1,7 @@
 from fastapi import FastAPI, Request, status
+from dotenv import load_dotenv
+
+load_dotenv() 
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from fastapi.security import OAuth2PasswordBearer
@@ -11,6 +14,7 @@ import json
 import time
 from starlette.responses import Response
 from logging.handlers import RotatingFileHandler
+
 
 # Configure logging
 logging.basicConfig(

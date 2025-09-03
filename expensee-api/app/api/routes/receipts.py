@@ -131,24 +131,22 @@ async def upload_receipt_gemini(
                         total_price=int(item_data.get('total', int(item_data.get('price', '0').replace('.', '')) * int(item_data.get('quantity', 1)))),
                     )
                     db.add(expense_item)
-            
+            return ReceiptUploadResponse(
+                ocr_id=ocr_id,
+                status=ocr_result.receipt_status.value,
+                message="Receipt processed successfully"
+            )
         except Exception as e:
             logger.error(f"Error processing receipt: {str(e)}")
             # Don't fail the request if OCR processing fails - the user can still get their receipt ID
-        
-        # Return the appropriate response based on the OCR processing status
-        if ocr_result.receipt_status == ReceiptStatus.PROCESSED:
-            return ReceiptUploadResponse(
-                ocr_id=ocr_id,
-                status="complete",
-                message="Receipt processed successfully"
-            )
-        else:
-            # Ensure estimated_time is never null
-            return ReceiptUploadResponse(
-                ocr_id=ocr_id,
-                status="rejected",
-                message="Receipt uploaded but error processing"
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail={
+                    "status": "error",
+                    "error_code": "server_error",
+                    "message": "Error processing receipt",
+                    "details": {"error": str(e)}
+                }
             )
         
     except HTTPException as e:
